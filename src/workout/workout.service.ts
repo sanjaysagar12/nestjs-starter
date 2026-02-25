@@ -1,9 +1,36 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { TodayWorkoutResponseDto } from './dto/today-workout.dto';
+import { SaveWorkoutPreferencesDto, WorkoutPreferencesResponseDto } from './dto/workout-preferences.dto';
 
 @Injectable()
 export class WorkoutService {
-    getTodayWorkout(): TodayWorkoutResponseDto {
+    constructor(private readonly prisma: PrismaService) { }
+
+
+    async getTodayWorkout(userId: string): Promise<TodayWorkoutResponseDto | null> {
+        // Check required preference fields — return null if onboarding is incomplete
+        const prefs = await this.prisma.userProfile.findUnique({
+            where: { userId },
+            select: {
+                fitnessLevel: true,
+                workoutFrequencyPerWeek: true,
+                preferredWorkoutType: true,
+                availableDays: true,
+                preferredWorkoutTime: true,
+            },
+        });
+
+        const ready =
+            prefs &&
+            prefs.fitnessLevel &&
+            prefs.workoutFrequencyPerWeek &&
+            prefs.preferredWorkoutType &&
+            prefs.availableDays?.length > 0 &&
+            prefs.preferredWorkoutTime;
+
+        if (!ready) return null;
+
         return {
             title: 'Suggested Muscle',
             highlight: 'Bicep & Back',
@@ -100,5 +127,65 @@ export class WorkoutService {
             ],
         };
     }
+
+    async getWorkoutPreferences(userId: string): Promise<WorkoutPreferencesResponseDto | null> {
+        const profile = await this.prisma.userProfile.findUnique({
+            where: { userId },
+            select: {
+                id: true,
+                fitnessLevel: true,
+                workoutFrequencyPerWeek: true,
+                preferredWorkoutType: true,
+                injuries: true,
+                availableDays: true,
+                preferredWorkoutTime: true,
+                sessionDurationMins: true,
+                updatedAt: true,
+            },
+        });
+        return profile;
+    }
+
+    async saveWorkoutPreferences(
+        userId: string,
+        dto: SaveWorkoutPreferencesDto,
+    ): Promise<WorkoutPreferencesResponseDto> {
+        const profile = await this.prisma.userProfile.upsert({
+            where: { userId },
+            create: {
+                userId,
+                fitnessLevel: dto.fitnessLevel,
+                workoutFrequencyPerWeek: dto.workoutFrequencyPerWeek,
+                preferredWorkoutType: dto.preferredWorkoutType,
+                injuries: dto.injuries,
+                availableDays: dto.availableDays ?? [],
+                preferredWorkoutTime: dto.preferredWorkoutTime,
+                sessionDurationMins: dto.sessionDurationMins,
+            },
+            update: {
+                ...(dto.fitnessLevel !== undefined && { fitnessLevel: dto.fitnessLevel }),
+                ...(dto.workoutFrequencyPerWeek !== undefined && { workoutFrequencyPerWeek: dto.workoutFrequencyPerWeek }),
+                ...(dto.preferredWorkoutType !== undefined && { preferredWorkoutType: dto.preferredWorkoutType }),
+                ...(dto.injuries !== undefined && { injuries: dto.injuries }),
+                ...(dto.availableDays !== undefined && { availableDays: dto.availableDays }),
+                ...(dto.preferredWorkoutTime !== undefined && { preferredWorkoutTime: dto.preferredWorkoutTime }),
+                ...(dto.sessionDurationMins !== undefined && { sessionDurationMins: dto.sessionDurationMins }),
+                updatedAt: new Date(),
+            },
+            select: {
+                id: true,
+                fitnessLevel: true,
+                workoutFrequencyPerWeek: true,
+                preferredWorkoutType: true,
+                injuries: true,
+                availableDays: true,
+                preferredWorkoutTime: true,
+                sessionDurationMins: true,
+                updatedAt: true,
+            },
+        });
+        return profile;
+    }
 }
+
 
