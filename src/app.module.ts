@@ -6,16 +6,16 @@ import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { S3Module } from './s3/s3.module';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
+    FirebaseModule,
     PrismaModule,
     UserModule,
     AuthModule,
-    S3Module,
   ],
   controllers: [AppController, UserController],
   providers: [AppService, UserService],
 })
-export class AppModule {}
+export class AppModule { }

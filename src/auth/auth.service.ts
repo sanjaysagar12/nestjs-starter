@@ -1,14 +1,13 @@
 import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaClient } from '@prisma/client';
-// New import
-import { OAuth2Client } from 'google-auth-library';
+import * as admin from 'firebase-admin';
 
 @Injectable()
 export class AuthService {
 	private prisma = new PrismaClient();
 
-	constructor(private readonly jwtService: JwtService) {}
+	constructor(private readonly jwtService: JwtService) { }
 
 	// Find existing user by email or create a new one, then return a jwt + user
 	async validateOAuthLogin(profile: any) {
@@ -46,36 +45,32 @@ export class AuthService {
 		return { user, token };
 	}
 
-	// New: verify Google idToken coming from Android client and return { user, token }
+	// Verify a Firebase ID token (issued by Firebase Auth on the mobile client)
+	// and return { user, token } where token is our own JWT
 	async validateIdToken(idToken: string) {
 		if (!idToken) {
 			throw new UnauthorizedException('Missing idToken');
 		}
 
-		const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-		let ticket;
+		let decodedToken: admin.auth.DecodedIdToken;
 		try {
-			ticket = await client.verifyIdToken({
-				idToken,
-				audience: process.env.GOOGLE_CLIENT_ID,
-			});
+			decodedToken = await admin.auth().verifyIdToken(idToken);
 		} catch (err) {
-			throw new UnauthorizedException('Invalid Google idToken');
+			throw new UnauthorizedException('Invalid Firebase ID token');
 		}
 
-		const payload = ticket.getPayload();
-		if (!payload || !payload.email) {
-			throw new UnauthorizedException('Invalid token payload');
+		if (!decodedToken.email) {
+			throw new UnauthorizedException('Firebase token does not contain an email');
 		}
 
-		// build a profile-like object that validateOAuthLogin expects
+		// Build a profile-like object that validateOAuthLogin expects
 		const profileLike = {
-			emails: [{ value: payload.email }],
-			displayName: payload.name || payload.email.split('@')[0],
-			photos: payload.picture ? [{ value: payload.picture }] : [],
+			emails: [{ value: decodedToken.email }],
+			displayName: decodedToken.name || decodedToken.email.split('@')[0],
+			photos: decodedToken.picture ? [{ value: decodedToken.picture }] : [],
 		};
 
-		// reuse existing logic to find-or-create user and issue jwt
+		// Reuse existing logic to find-or-create user and issue our JWT
 		return this.validateOAuthLogin(profileLike);
 	}
 }

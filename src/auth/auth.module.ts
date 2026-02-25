@@ -6,7 +6,6 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from '../common/strategys/jwt.strategy';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AdminGuard } from '../common/guards/admin.guard';
-import { GoogleStrategy } from '../common/strategys/google.strategy';
 import { AuthController } from './auth.controller';
 
 @Module({
@@ -22,9 +21,8 @@ import { AuthController } from './auth.controller';
 		JwtStrategy,
 		{ provide: APP_GUARD, useClass: JwtAuthGuard }, // enforces JWT by default except @Public
 		{ provide: APP_GUARD, useClass: AdminGuard }, // enforces @Admin where applied
-		GoogleStrategy,
 	],
 	controllers: [AuthController],
 	exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

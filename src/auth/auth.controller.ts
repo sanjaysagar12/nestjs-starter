@@ -9,42 +9,14 @@ import { Public } from '../common/decorators/public.decorator';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+	constructor(private readonly authService: AuthService) { }
 
-	@Get('google')
-	@Public()
-	@UseGuards(AuthGuard('google'))
-	@ApiOperation({ 
-		summary: 'Google OAuth Authentication',
-		description: 'Redirects to Google for authentication' 
-	})
-	async googleAuth() {
-		// Passport will redirect
-	}
-
-	@Get('google/callback')
-	@Public()
-	@UseGuards(AuthGuard('google'))
-	@ApiOperation({ 
-		summary: 'Google OAuth Callback',
-		description: 'Callback endpoint for Google OAuth' 
-	})
-	@ApiExcludeEndpoint() // Hide from Swagger as it's redirected to by Google
-	@ApiOkResponse({ type: GoogleCallbackResponseDto })
-	async googleAuthRedirect(@Req() req: any) {
-		// req.user is the object returned from GoogleStrategy.validate -> AuthService.validateOAuthLogin
-		// It contains { user, token }
-		const result = req.user;
-		// Return JSON; you can also redirect to frontend with token as query param if desired.
-        console.log("Result: ",result);
-		return result;
-	}
 
 	@Post('google/token')
 	@Public()
-	@ApiOperation({ 
+	@ApiOperation({
 		summary: 'Authenticate with Google ID Token',
-		description: 'For mobile clients to authenticate using Google ID token' 
+		description: 'For mobile clients to authenticate using Google ID token'
 	})
 	@ApiBody({ type: AndroidTokenDto })
 	@ApiOkResponse({ type: GoogleCallbackResponseDto })
@@ -53,8 +25,4 @@ export class AuthController {
 		return result;
 	}
 
-	// Example: admin-only endpoint usage
-	// @Get('admin-only')
-	// @Admin()
-	// someAdminHandler() { ... }
 }
