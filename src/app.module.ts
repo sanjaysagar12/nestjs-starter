@@ -7,6 +7,7 @@ import { UserService } from './user/user.service';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { FirebaseModule } from './firebase/firebase.module';
+import { WorkoutModule } from './workout/workout.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { FirebaseModule } from './firebase/firebase.module';
     PrismaModule,
     UserModule,
     AuthModule,
+    WorkoutModule,
   ],
   controllers: [AppController, UserController],
   providers: [AppService, UserService],
