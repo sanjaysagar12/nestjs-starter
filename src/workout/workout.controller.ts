@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { WorkoutService } from './workout.service';
-import { TodayWorkoutResponseDto } from './dto/today-workout.dto';
+import { TodayWorkoutResponseDto, WorkoutSessionDto } from './dto/today-workout.dto';
 import { SaveWorkoutPreferencesDto, WorkoutPreferencesResponseDto } from './dto/workout-preferences.dto';
 
 @ApiTags('Workout')
@@ -18,6 +18,16 @@ export class WorkoutController {
     @ApiOkResponse({ type: TodayWorkoutResponseDto })
     async getTodayWorkout(@Req() req: any): Promise<TodayWorkoutResponseDto | null> {
         return this.workoutService.getTodayWorkout(req.user.id);
+    }
+
+    @Get('sessions')
+    @ApiOperation({
+        summary: 'Get workout sessions',
+        description: 'Returns all available workout sessions with their exercises',
+    })
+    @ApiOkResponse({ type: [WorkoutSessionDto] })
+    getSessions(): WorkoutSessionDto[] {
+        return this.workoutService.getSessions();
     }
 
     @Get('preferences')
