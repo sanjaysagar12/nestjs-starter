@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { WorkoutModule } from './workout/workout.module';
+import { DietModule } from './diet/diet.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { WorkoutModule } from './workout/workout.module';
     UserModule,
     AuthModule,
     WorkoutModule,
+    DietModule,
   ],
   controllers: [AppController, UserController],
   providers: [AppService, UserService],
