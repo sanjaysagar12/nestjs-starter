@@ -1,7 +1,8 @@
-import { Controller, Get, Param, Req, NotFoundException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiOkResponse, ApiNotFoundResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post, Req, NotFoundException } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiOkResponse, ApiNotFoundResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { GetByUsernameResponseDto, ProfileResponseDto } from './dto';
+import { BodyMetricsResponseDto, SaveBodyMetricsDto } from './dto/swagger/body-metrics.dto';
 
 @ApiTags('User')
 @ApiBearerAuth('JWT')
@@ -17,6 +18,24 @@ export class UserController {
         const user = await this.userService.getProfile(userId);
         if (!user) throw new NotFoundException('User not found');
         return user;
+    }
+
+    @Get('body-metrics')
+    @ApiOperation({ summary: 'Get body metrics & goals' })
+    @ApiOkResponse({ type: BodyMetricsResponseDto })
+    async getBodyMetrics(@Req() req: any) {
+        return this.userService.getBodyMetrics(req.user.id);
+    }
+
+    @Post('body-metrics')
+    @ApiOperation({
+        summary: 'Save body metrics & goals',
+        description: 'Creates or updates age, gender, height, weight, body type and goal. All fields are optional.',
+    })
+    @ApiBody({ type: SaveBodyMetricsDto })
+    @ApiOkResponse({ type: BodyMetricsResponseDto })
+    async saveBodyMetrics(@Req() req: any, @Body() body: SaveBodyMetricsDto) {
+        return this.userService.saveBodyMetrics(req.user.id, body);
     }
 
     @Get(':username')

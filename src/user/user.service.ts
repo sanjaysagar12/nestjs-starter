@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SaveBodyMetricsDto } from './dto/swagger/body-metrics.dto';
 
 @Injectable()
 export class UserService {
@@ -33,6 +34,62 @@ export class UserService {
 				bio: true,
 				role: true,
 				createdAt: true,
+				updatedAt: true,
+			},
+		});
+	}
+
+	async getBodyMetrics(userId: string) {
+		return this.prisma.userProfile.findUnique({
+			where: { userId },
+			select: {
+				age: true,
+				gender: true,
+				heightCm: true,
+				heightFt: true,
+				weightKg: true,
+				weightLbs: true,
+				bodyType: true,
+				goal: true,
+				updatedAt: true,
+			},
+		});
+	}
+
+	async saveBodyMetrics(userId: string, dto: SaveBodyMetricsDto) {
+		return this.prisma.userProfile.upsert({
+			where: { userId },
+			create: {
+				userId,
+				age: dto.age,
+				gender: dto.gender,
+				heightCm: dto.heightCm,
+				heightFt: dto.heightFt,
+				weightKg: dto.weightKg,
+				weightLbs: dto.weightLbs,
+				bodyType: dto.bodyType,
+				goal: dto.goal,
+			},
+			update: {
+				...(dto.age !== undefined && { age: dto.age }),
+				...(dto.gender !== undefined && { gender: dto.gender }),
+				...(dto.heightCm !== undefined && { heightCm: dto.heightCm }),
+				...(dto.heightFt !== undefined && { heightFt: dto.heightFt }),
+				...(dto.weightKg !== undefined && { weightKg: dto.weightKg }),
+				...(dto.weightLbs !== undefined && { weightLbs: dto.weightLbs }),
+				...(dto.bodyType !== undefined && { bodyType: dto.bodyType }),
+				...(dto.goal !== undefined && { goal: dto.goal }),
+				updatedAt: new Date(),
+			},
+			select: {
+				age: true,
+				gender: true,
+				heightCm: true,
+				heightFt: true,
+				weightKg: true,
+				weightLbs: true,
+				bodyType: true,
+				goal: true,
 				updatedAt: true,
 			},
 		});
